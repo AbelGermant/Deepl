@@ -39,7 +39,7 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
 
         # Initial layers
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
 
         # Stack of residual layers, using "blocks" to build a deeper network
@@ -69,5 +69,5 @@ class ResNet(nn.Module):
         return out
 
 # Instantiate and view the network
-model = ResNet(num_classes=10)
-print(model)
+#model = ResNet(num_classes=10)
+#print(model)

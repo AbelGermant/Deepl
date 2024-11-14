@@ -38,7 +38,7 @@ class RungeKuttaResNet(nn.Module):
         super(RungeKuttaResNet, self).__init__()
 
         # Initial layer
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
 
         # Residual layers
@@ -68,5 +68,5 @@ class RungeKuttaResNet(nn.Module):
         return out
 
 # Instantiate the model
-model = RungeKuttaResNet(num_classes=10)
-print(model)
+#model = RungeKuttaResNet(num_classes=10)
+#print(model)
