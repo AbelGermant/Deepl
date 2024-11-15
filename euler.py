@@ -67,7 +67,3 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
-
-# Instantiate and view the network
-#model = ResNet(num_classes=10)
-#print(model)

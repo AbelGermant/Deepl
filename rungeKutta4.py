@@ -2,17 +2,22 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class RungeKuttaResidualBlock(nn.Module):
+class RK4ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1):
-        super(RungeKuttaResidualBlock, self).__init__()
+        super(RK4ResidualBlock, self).__init__()
 
-        # First convolution layer (like the "half-step" in RK2)
+        # Define convolutional layers
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
 
-        # Second convolution layer (like the final step in RK2)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(out_channels)
+
+        self.conv3 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(out_channels)
+
+        self.conv4 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn4 = nn.BatchNorm2d(out_channels)
 
         # Shortcut connection to match dimensions if needed
         self.shortcut = nn.Sequential()
@@ -23,19 +28,36 @@ class RungeKuttaResidualBlock(nn.Module):
             )
 
     def forward(self, x):
-        # Step 1: Compute the intermediate output (first RK step)
+        # Step 0: Compute the shortcut output to match dimensions
+        shortcut = self.shortcut(x)
+
+        # Step 1: Compute k1
         k1 = F.relu(self.bn1(self.conv1(x)))
 
-        # Step 2: Compute the second transformation based on k1 (second RK step)
-        k2 = F.relu(self.bn2(self.conv2(k1)))
+        # Step 2: Compute k2 using k1 and shortcut
+        k2_input = shortcut + 0.5 * k1  # Match dimensions using shortcut
+        k2 = F.relu(self.bn2(self.conv2(k2_input)))
 
-        # Use shortcut connection and add to second RK step output
-        out = self.shortcut(x) + k2  # Final RK2 approximation
+        # Step 3: Compute k3 using k2 and shortcut
+        k3_input = shortcut + 0.5 * k2  # Match dimensions using shortcut
+        k3 = F.relu(self.bn3(self.conv3(k3_input)))
+
+        # Step 4: Compute k4 using k3 and shortcut
+        k4_input = shortcut + k3  # Match dimensions using shortcut
+        k4 = F.relu(self.bn4(self.conv4(k4_input)))
+
+        # RK4 combination: weighted sum of k1, k2, k3, k4
+        rk4_output = (1/6) * (k1 + 2*k2 + 2*k3 + k4)
+
+        # Add the shortcut connection to the RK4 output
+        out = shortcut + rk4_output
         return out
 
-class RungeKuttaResNet(nn.Module):
+
+
+class RK4ResNet(nn.Module):
     def __init__(self, num_classes=10):
-        super(RungeKuttaResNet, self).__init__()
+        super(RK4ResNet, self).__init__()
 
         # Initial layer
         self.conv1 = nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1, bias=False)
@@ -52,8 +74,8 @@ class RungeKuttaResNet(nn.Module):
 
     def _make_layer(self, in_channels, out_channels, stride):
         layers = []
-        layers.append(RungeKuttaResidualBlock(in_channels, out_channels, stride))
-        layers.append(RungeKuttaResidualBlock(out_channels, out_channels, stride=1))
+        layers.append(RK4ResidualBlock(in_channels, out_channels, stride))
+        layers.append(RK4ResidualBlock(out_channels, out_channels, stride=1))
         return nn.Sequential(*layers)
 
     def forward(self, x):

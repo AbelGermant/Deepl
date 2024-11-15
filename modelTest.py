@@ -1,5 +1,6 @@
 from euler import ResNet
 from rungeKutta import RungeKuttaResNet
+from rungeKutta4 import RK4ResNet
 
 import torch
 import torch.nn as nn
@@ -69,6 +70,8 @@ def train_and_evaluate(model, model_name):
 # Instantiate and test both models
 resnet_model = ResNet(num_classes=num_classes)
 rk_resnet_model = RungeKuttaResNet(num_classes=num_classes)
+rk4_resnet_model = RK4ResNet(num_classes=num_classes)
 
-train_and_evaluate(resnet_model, "ResNet")
-train_and_evaluate(rk_resnet_model, "Runge-Kutta ResNet")
+#train_and_evaluate(resnet_model, "ResNet")
+#train_and_evaluate(rk_resnet_model, "Runge-Kutta ResNet")
+train_and_evaluate(rk4_resnet_model, "RK4 ResNet")
